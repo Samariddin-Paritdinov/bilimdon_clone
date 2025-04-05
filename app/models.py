@@ -6,7 +6,6 @@ from datetime import datetime, date, timezone, time
 
 from app.database import Base
 
-
 class User(Base):
     __tablename__="users"
 
@@ -21,6 +20,7 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     is_staff: Mapped[bool] = mapped_column(default=False)
     is_superuser: Mapped[bool] = mapped_column(default=False)
+
 
 class Participation(Base):
     __tablename__ = 'participations'
