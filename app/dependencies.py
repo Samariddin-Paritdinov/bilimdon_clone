@@ -1,10 +1,10 @@
-from sqlalchemy.orm import Session
+from app.database import SessionLocal
 
 
 
 
 def get_db():
-    db = Session()
+    db = SessionLocal()
     try:
         yield db
     finally:
