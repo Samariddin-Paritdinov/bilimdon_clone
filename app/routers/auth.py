@@ -47,15 +47,9 @@ async def login(
         user: AuthLogin
     ):
     db_user = db.query(User).filter(User.email == user.email).first()
+    is_correct = verify_password(user.password, db_user.hashed_password) if db_user else False
 
-    if not db_user:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid password or username."
-        )
-
-    is_correct = verify_password(user.password, db_user.hashed_password)
-    if not is_correct:
+    if not db_user or not is_correct:
         raise HTTPException(
             status_code=401,
             detail="Invalid password or username."
