@@ -4,7 +4,7 @@ class AuthRegistration(BaseModel):
     email: EmailStr
     password: str
 
-class AuthRegistrationResponse(AuthRegistration):
+class AuthRegistrationResponse(BaseModel):
     id: int
     email: EmailStr
     username: str
