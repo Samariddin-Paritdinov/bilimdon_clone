@@ -7,7 +7,10 @@ from app.utils import *
 from app.dependencies import *
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/authentication", 
+    tags=["Authentication"],
+)
 
 
 @router.post('/registration', response_model=AuthRegistrationResponse)
