@@ -4,6 +4,9 @@ from app.models import Option
 from app.dependencies import db_dep
 from app.schemas.option import *
 
+from typing import List
+
+
 router = APIRouter(
     prefix="/Option", 
     tags=["Option"],
@@ -11,7 +14,7 @@ router = APIRouter(
 
 
 
-@router.get("/options")
+@router.get("/options", response_model = List[ResponseOptionGet])
 async def get_options(db:db_dep):
     options = db.query(Option).all()
     if not options:
@@ -20,7 +23,7 @@ async def get_options(db:db_dep):
     return options
 
 
-@router.get("/option/{option_id}")
+@router.get("/option/{option_id}", response_model = ResponseOptionGetById)
 async def get_option(option_id: int, db: db_dep):
     option = db.query(Option).filter(Option.id == option_id).first()
     if not option:
@@ -29,7 +32,7 @@ async def get_option(option_id: int, db: db_dep):
     return option
 
 
-@router.post("/new_option")
+@router.post("/new_option", response_model = ResponseOptionGetById)
 async def create_option(option: OptionCreate, db: db_dep):
     db.add(option)
     db.commit()
@@ -38,7 +41,7 @@ async def create_option(option: OptionCreate, db: db_dep):
     return option
 
 
-@router.put("/upd_option/{option_id}")
+@router.put("/update_option/{option_id}", response_model = ResponseOptionGetById)
 async def update_option(option_id: int, option: OptionUpdate, db: db_dep):
     db_option = db.query(Option).filter(Option.id == option_id).first()
     if not db_option:
@@ -53,7 +56,7 @@ async def update_option(option_id: int, option: OptionUpdate, db: db_dep):
     return db_option
 
 
-@router.delete("/del_option/{option_id}")
+@router.delete("/delete_option/{option_id}", response_model = dict)
 async def delete_option(option_id: int, db: db_dep):
     db_option = db.query(Option).filter(Option.id == option_id).first()
     if not db_option:

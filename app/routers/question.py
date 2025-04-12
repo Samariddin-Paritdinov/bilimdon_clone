@@ -2,10 +2,11 @@ from fastapi import APIRouter, HTTPException
 
 from app.dependencies import db_dep
 from app.models import *
-from app.schemas.question import QuestionCreate, QuestionUpdate
+from app.schemas.question import *
 from app.utils import get_current_user
 
 from datetime import datetime
+from typing import List
 
 
 router = APIRouter(
@@ -15,14 +16,14 @@ router = APIRouter(
 
 
 
-@router.get("/questions")
+@router.get("/questions", response_model = List[ResponseQuestionGet])
 async def get_questions(db: db_dep):
     questions = db.query(Question).all()
 
     return questions
 
 
-@router.get("/question/{question_id}")
+@router.get("/question/{question_id}", response_model = ResponseQuestionGetById)
 async def get_question_by_id(question_id: int, db: db_dep):
     question = db.query(Question).filter(Question.id == question_id).first()
 
@@ -32,7 +33,7 @@ async def get_question_by_id(question_id: int, db: db_dep):
     return question
 
     
-@router.post("/new_question")
+@router.post("/new_question", response_model = ResponseQuestionGetById)
 async def create_question(question: QuestionCreate, db: db_dep):
     new_question = Question(
         owner_id = get_current_user().id,
@@ -58,7 +59,7 @@ async def create_question(question: QuestionCreate, db: db_dep):
     return new_question
 
 
-@router.put("/upd_question/{question_id}")
+@router.put("/update_question/{question_id}", response_model = ResponseQuestionGetById)
 async def update_question(
     question_id: int,
     question: QuestionUpdate,
@@ -80,7 +81,7 @@ async def update_question(
     return existing_question
 
 
-@router.delete("/del_question/{question_id}")
+@router.delete("/delete_question/{question_id}", response_model = dict)
 async def delete_question(question_id: int, db: db_dep):
     question = db.query(Question).filter(Question.id == question_id).first()
 
