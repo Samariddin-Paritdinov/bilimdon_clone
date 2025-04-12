@@ -39,7 +39,6 @@ async def create_question(question: QuestionCreate, db: db_dep):
         title = question.title,
         description = question.description,
         topic_id = question.topic_id,
-        option_id = question.option_id,
         created_at = datetime.utcnow(),
         updated_at = datetime.utcnow(),
     )
@@ -51,8 +50,6 @@ async def create_question(question: QuestionCreate, db: db_dep):
     if not question.topic_id in db.query(Topic).all():
         raise HTTPException(status_code=400, detail="Invalid topic ID")    
     
-    if not question.option_id in db.query(Option).all():
-        raise HTTPException(status_code=400, detail="Invalid option ID")
     
     db.add(new_question)
     db.commit()

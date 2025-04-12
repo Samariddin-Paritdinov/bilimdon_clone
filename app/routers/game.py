@@ -33,10 +33,4 @@
 
 #     return {"message": f"Game with {id} id deleted successfully"}
 
-# @router.post("/create_game")
-# async def create_game(game: Game, db: db_dep):
-#     db.add(game)
-#     db.commit()
-#     db.refresh(game)
 
-#     return game

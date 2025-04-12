@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.routers.auth import router as auth_router
 from app.routers.question import router as question_router
+from app.routers.option import router as option_router
 
 app = FastAPI()
 
@@ -18,3 +19,4 @@ def read_root():
 
 app.include_router(auth_router)
 app.include_router(question_router)
+app.include_router(option_router)

@@ -14,6 +14,7 @@ async def create_topic(name: str, ):
     db.add(topic)
     db.commit()
     db.refresh(topic)
+    
 
     return {"message": "Topic created", "topic": topic}
 
