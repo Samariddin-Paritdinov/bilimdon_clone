@@ -4,12 +4,9 @@ from datetime import datetime
 
 
 class OptionCreate(BaseModel):
-    id: int
     question_id: int
     title: str
     is_correct: bool
-    created_at: datetime
-    updated_at: datetime
     
 
 class OptionUpdate(BaseModel):
@@ -17,14 +14,14 @@ class OptionUpdate(BaseModel):
     is_correct: bool
 
 
-class ResponseOptionGet(BaseModel):
+class OptionGetResponse(BaseModel):
     id: int
     question_id: int
     title: str
     is_correct: bool
 
 
-class ResponseOptionGetById(BaseModel):
+class OptionGetDetailResponse(BaseModel):
     id: int
     question_id: int
     title: str
@@ -32,3 +29,10 @@ class ResponseOptionGetById(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+class OptionGetForQuestionsResponse(BaseModel):
+    id: int
+    title: str
+    is_correct: bool
+
+    class Config:
+        orm_mode = True

@@ -1,15 +1,15 @@
 from fastapi import APIRouter, HTTPException, Response
 
-from app.database  import * 
+
 from app.schemas.auth import *
 from app.models import User
-from app.utils import *
-from app.dependencies import *
+from app.utils import hash_password, verify_password, create_access_token, REFRESH_TOKEN_EXPIRE_MINUTES
+from app.dependencies import db_dep
 
 
 router = APIRouter(
     prefix="/authentication", 
-    tags=["Authentication"],
+    tags=["authentication"],
 )
 
 

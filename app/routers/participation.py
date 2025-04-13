@@ -1,27 +1,28 @@
 from fastapi import APIRouter, HTTPException
 
+
+from app.dependencies import db_dep,current_user_dep
 from app.models import Participation
 from app.dependencies import db_dep
 from app.schemas.participation import *
-from app.utils import get_current_user
 
 from datetime import datetime, timezone
 
 
 router = APIRouter(
-    prefix="/Participation",
-    tags=["Participation"],
+    prefix="/participation",
+    tags=["participation"],
 )
 
-@router.get("/participations")
-async def get_participations(db: db_dep):
-    participations = db.query(Participation).all()
-    if not participations:
+@router.get("/")
+async def get_participation(db: db_dep):
+    participation = db.query(Participation).all()
+    if not participation:
         raise HTTPException(status_code=404, detail="No participations found")
     
-    return participations
+    return participation
 
-@router.get("/participation/{participation_id}")
+@router.get("/{id}/")
 async def get_participation_by_id(id: int, db: db_dep):
     participation = db.query(Participation).filter(Participation.id == id).first()
     if not participation:
@@ -30,10 +31,10 @@ async def get_participation_by_id(id: int, db: db_dep):
     return participation
 
 
-@router.post("/new_participation")
+@router.post("/create/")
 async def create_participation(participation: ParticipationCreate, db: db_dep):
     new_participation = Participation(
-        user_id=get_current_user().id,
+        user_id=current_user_dep.id,
         game_id=participation.game_id,
         registered_at=datetime.now(timezone.utc),
 
@@ -49,3 +50,16 @@ async def create_participation(participation: ParticipationCreate, db: db_dep):
 
 
 
+@router.delete("/delete/{id}/")
+async def delete_participation(id: int, db: db_dep):
+    participation = db.query(Participation).filter(Participation.id == id).first()
+    if not participation:
+        raise HTTPException(status_code=404, detail="Participation not found")
+
+    db.delete(participation)
+    db.commit()
+
+    return {
+        "participation ID": id,
+        "detail": "Participation deleted successfully",
+        }

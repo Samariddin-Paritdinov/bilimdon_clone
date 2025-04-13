@@ -1,46 +1,74 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from app.dependencies import db_dep
-from app.models import Game
+from app.dependencies import db_dep, current_user_dep
+from app.models import Game, Topic
 from app.schemas.game import *
-from app.utils import get_current_user
+
 
 
 router = APIRouter(
-    prefix="/game",
-    tags=["game"],
+    prefix="/games",
+    tags=["games"],
 )
 
 
-@router.get("/get_games")
+@router.get("/", response_model=list[GameGetResponse])
 async def get_games(db: db_dep, ):
     games_query = db.query(Game).all()
 
     return games_query
 
 
-@router.get("/get_game/{id}")
+@router.get("/{id}/", response_model=GameGetResponse)
 async def get_game_by_id(id: int, db: db_dep):
     game_query = db.query(Game).filter(Game.id == id).first()
 
     return game_query
 
 
-@router.post("/create_game")
-async def create_game(game: GameCreate, db: db_dep):
+@router.post("/create/", response_model=GameGetResponse)
+async def create_game(
+        game: GameCreate,
+        db: db_dep,
+        current_user: current_user_dep,
+):
     new_game = Game(
-        owner_id=get_current_user().id,
-        title=game.title,
-        description=game.description,
-        topic_id=game.topic_id,
-        start_time=game.start_time,
-        end_time=game.end_time,
+        owner_id=current_user.id,
+        **game.model_dump()
     )
 
-    return game_query
+    topic_id_exist = db.query(Topic).filter(Topic.id == game.topic_id).first()
+    if not topic_id_exist:
+        raise HTTPException(
+            status_code=400,
+            detail="Topic with this id does not exist",
+        )
+    if new_game.start_time > new_game.end_time:
+        raise HTTPException(
+            status_code=400,
+            detail="Start time must be less than end time",
+        )
+    
+
+    game_exist = db.query(Game).filter(
+        Game.title == game.title,
+        Game.topic_id == game.topic_id
+    ).first()
+    if game_exist.first():
+        raise HTTPException(
+            status_code=400,
+            detail="Game with this title and topic already exists",
+        )
+
+    db.add(new_game)
+    db.commit()
+    db.refresh(new_game)
 
 
-@router.put("/update_game/{id}")
+    return new_game
+
+
+@router.put("/update/{id}/")
 async def update_game_by_id(id: int, game: GameUpdate, db: db_dep):
     game_query = db.query(Game).filter(Game.id == id).first()
     if not game_query:
@@ -54,12 +82,7 @@ async def update_game_by_id(id: int, game: GameUpdate, db: db_dep):
     return game_query
 
 
-
-
-
-
-
-@router.delete("/delete_game/{id}")
+@router.delete("/delete/{id}/")
 async def delete_game_by_id(id: int, db: db_dep):
     game_query = db.query(Game).filter(Game.id == id).first()
     if not game_query:

@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from typing import List
+from app.schemas.option import OptionGetForQuestionsResponse
 
 class QuestionCreate(BaseModel):
     title: str
@@ -13,13 +15,13 @@ class QuestionUpdate(BaseModel):
     topic_id: int | None = None
 
 
-class ResponseQuestionGet(BaseModel):
+class QuestionGetResponse(BaseModel):
     id: int
     title: str
     topic_id: int
 
 
-class ResponseQuestionGetById(BaseModel):
+class QuestionGetDetailResponse(BaseModel):
     id: int
     title: str
     description: str
@@ -28,3 +30,17 @@ class ResponseQuestionGetById(BaseModel):
     created_at: str
     updated_at: str
 
+class QuestionWithOptionsResponse(BaseModel):
+    id: int
+    owner_id: int
+    topic_id: int
+
+    title: str
+    description: str
+    options: List[OptionGetForQuestionsResponse]
+
+    created_at: str
+    updated_at: str
+
+    class Config:
+        orm_mode = True

@@ -1,31 +1,29 @@
 from fastapi import APIRouter, HTTPException
 
-from app.dependencies import db_dep
-from app.models import *
-from app.schemas.question import *
-from app.utils import get_current_user
-
-from datetime import datetime
+from app.dependencies import db_dep, current_user_dep
+from app.models import Question, Topic, Option
+from app.schemas import QuestionCreate, QuestionUpdate, QuestionGetDetailResponse, QuestionGetResponse, QuestionWithOptionsResponse
+from datetime import datetime, timezone
 from typing import List
 
 
 router = APIRouter(
-    prefix="/Question", 
-    tags=["Question"],
+    prefix="/questions",
+    tags=["questions"],
 )
 
 
 
-@router.get("/questions", response_model = List[ResponseQuestionGet])
+@router.get("/", response_model = List[QuestionGetResponse])
 async def get_questions(db: db_dep):
     questions = db.query(Question).all()
 
     return questions
 
 
-@router.get("/question/{question_id}", response_model = ResponseQuestionGetById)
-async def get_question_by_id(question_id: int, db: db_dep):
-    question = db.query(Question).filter(Question.id == question_id).first()
+@router.get("/{id}/", response_model = QuestionGetDetailResponse)
+async def get_question_by_id(id: int, db: db_dep):
+    question = db.query(Question).filter(Question.id == id).first()
 
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
@@ -33,25 +31,26 @@ async def get_question_by_id(question_id: int, db: db_dep):
     return question
 
     
-@router.post("/new_question", response_model = ResponseQuestionGetById)
-async def create_question(question: QuestionCreate, db: db_dep):
-    new_question = Question(
-        owner_id = get_current_user().id,
-        title = question.title,
-        description = question.description,
-        topic_id = question.topic_id,
-        created_at = datetime.utcnow(),
-        updated_at = datetime.utcnow(),
-    )
-    
-    # existing_question = db.query(Question).filter(Question.title == question.title).first()
-    # if existing_question:
-    #     raise HTTPException(status_code=400, detail="Question already exists")
+@router.post("/create", response_model = QuestionGetDetailResponse)
+async def create_question(
+        question: QuestionCreate,
+        db: db_dep,
+        current_user: current_user_dep,
+    ):
 
-    if not question.topic_id in db.query(Topic).all():
-        raise HTTPException(status_code=400, detail="Invalid topic ID")    
-    
-    
+    existing_question = db.query(Question).filter(Question.title == question.title).first()
+    if existing_question:
+        raise HTTPException(status_code=400, detail="Question already exists")
+
+    if not db.query(Topic).filter(Topic.id == question.topic_id).first():
+        raise HTTPException(status_code=400, detail="Invalid topic ID")
+
+
+    new_question = Question(
+        owner_id = current_user.id,
+        **question.model_dump(),
+    )
+
     db.add(new_question)
     db.commit()
     db.refresh(new_question)
@@ -59,31 +58,29 @@ async def create_question(question: QuestionCreate, db: db_dep):
     return new_question
 
 
-@router.put("/update_question/{question_id}", response_model = ResponseQuestionGetById)
+@router.put("/update/{id}", response_model = QuestionGetDetailResponse)
 async def update_question(
-    question_id: int,
+    id: int,
     question: QuestionUpdate,
     db: db_dep
 ):
-    existing_question = db.query(Question).filter(Question.id == question_id).first()
-
+    existing_question = db.query(Question).filter(Question.id == id).first()
     if not existing_question:
         raise HTTPException(status_code=404, detail="Question not found")
 
-    for key, value in question.dict(exclude_unset=True).items():
+    for key, value in question.model_dump().items():
         setattr(existing_question, key, value)
 
-    existing_question.updated_at = datetime.utcnow()
-    
+    existing_question.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(existing_question)
 
     return existing_question
 
 
-@router.delete("/delete_question/{question_id}", response_model = dict)
-async def delete_question(question_id: int, db: db_dep):
-    question = db.query(Question).filter(Question.id == question_id).first()
+@router.delete("/delete/{id}")
+async def delete_question(id: int, db: db_dep):
+    question = db.query(Question).filter(Question.id == id).first()
 
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
@@ -94,3 +91,9 @@ async def delete_question(question_id: int, db: db_dep):
     return {"detail": "Question deleted successfully"}
 
 
+@router.get("/{id}/options/", response_model=QuestionWithOptionsResponse)
+async def get_questions_with_options(id: int, db:db_dep):
+    question = db.query(Question).filter(Question.id == id).first()
+
+    if not question:
+        raise HTTPException(status_code=400, detail="Question not found")

@@ -7,7 +7,7 @@ class AuthRegistration(BaseModel):
 class AuthRegistrationResponse(BaseModel):
     id: int
     email: EmailStr
-    username: str
+    email: str
     is_staff: bool
     is_superuser: bool
 

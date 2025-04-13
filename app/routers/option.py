@@ -1,53 +1,63 @@
 from fastapi import APIRouter, HTTPException
 
-from app.models import Option
+from app.models import Option, Question
 from app.dependencies import db_dep
-from app.schemas.option import *
+from app.schemas import OptionCreate, OptionUpdate, OptionGetResponse, OptionGetDetailResponse
 
 from typing import List
 
 
 router = APIRouter(
-    prefix="/Option", 
-    tags=["Option"],
+    prefix="/options",
+    tags=["options"],
 )
 
 
 
-@router.get("/options", response_model = List[ResponseOptionGet])
+@router.get("/", response_model = List[OptionGetResponse])
 async def get_options(db:db_dep):
-    options = db.query(Option).all()
-    if not options:
-        raise HTTPException(status_code=404, detail="Options not found")
-
-    return options
+    return db.query(Option).all()
 
 
-@router.get("/option/{option_id}", response_model = ResponseOptionGetById)
-async def get_option(option_id: int, db: db_dep):
-    option = db.query(Option).filter(Option.id == option_id).first()
+@router.get("/{id}/", response_model = OptionGetDetailResponse)
+async def get_option(id: int, db: db_dep):
+    option = db.query(Option).filter(Option.id == id).first()
     if not option:
         raise HTTPException(status_code=404, detail="Option not found")
 
     return option
 
 
-@router.post("/new_option", response_model = ResponseOptionGetById)
+@router.post("/create/", response_model = OptionGetDetailResponse)
 async def create_option(option: OptionCreate, db: db_dep):
-    db.add(option)
+    if not db.query(Question).filter(Question.id == option.id).first():
+        raise HTTPException(status_code=400, detail="Invalid Question ID")
+
+    existing_correct_option = db.query(Option).filter(
+        Option.question_id == option.question_id,
+        Option.is_correct == True,
+    )
+
+    if existing_correct_option and option.is_correct:
+        raise HTTPException(status_code=400, detail="Question already has a correct option")
+
+    new_option = Option(
+        **option.model_dump(),
+    )
+    db.add(new_option)
     db.commit()
-    db.refresh(option)
+    db.refresh(new_option)
 
-    return option
+    return new_option
 
 
-@router.put("/update_option/{option_id}", response_model = ResponseOptionGetById)
-async def update_option(option_id: int, option: OptionUpdate, db: db_dep):
-    db_option = db.query(Option).filter(Option.id == option_id).first()
+@router.put("/update/{id}/", response_model = OptionGetDetailResponse)
+async def update_option(id: int, option: OptionUpdate, db: db_dep):
+    db_option = db.query(Option).filter(Option.id == id).first()
     if not db_option:
         raise HTTPException(status_code=404, detail="Option not found")
 
-    for key, value in option.dict().items():
+    for key, value in option.model_dump().items():
         setattr(db_option, key, value)
 
     db.commit()
@@ -56,13 +66,16 @@ async def update_option(option_id: int, option: OptionUpdate, db: db_dep):
     return db_option
 
 
-@router.delete("/delete_option/{option_id}", response_model = dict)
-async def delete_option(option_id: int, db: db_dep):
-    db_option = db.query(Option).filter(Option.id == option_id).first()
+@router.delete("/delete/{id}/")
+async def delete_option(id: int, db: db_dep):
+    db_option = db.query(Option).filter(Option.id == id).first()
     if not db_option:
         raise HTTPException(status_code=404, detail="Option not found")
 
     db.delete(db_option)
     db.commit()
 
-    return {"detail": "Option deleted successfully"}
+    return {
+        "option ID": id,
+        "detail": "Option deleted successfully",
+    }
