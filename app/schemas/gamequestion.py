@@ -3,7 +3,7 @@ from pydantic import BaseModel
 class GameQuestionCreate(BaseModel):
     question_id: int
     game_id: int
-    score: int
+    score: int | None = 0
 
 
 class GameQuestionUpdate(BaseModel):

@@ -68,7 +68,8 @@ async def update_question(
     if not existing_question:
         raise HTTPException(status_code=404, detail="Question not found")
 
-    for key, value in question.model_dump().items():
+
+    for key, value in question.model_dump(exclude_unset=True).items():
         setattr(existing_question, key, value)
 
     existing_question.updated_at = datetime.now(timezone.utc)
@@ -93,7 +94,9 @@ async def delete_question(id: int, db: db_dep):
 
 @router.get("/{id}/options/", response_model=QuestionWithOptionsResponse)
 async def get_questions_with_options(id: int, db:db_dep):
-    question = db.query(Question).filter(Question.id == id).first()
+    questions = db.query(Question).filter(Question.id == id).first()
 
-    if not question:
+    if not questions:
         raise HTTPException(status_code=400, detail="Question not found")
+
+    return questions

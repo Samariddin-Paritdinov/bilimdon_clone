@@ -74,7 +74,7 @@ async def update_game_by_id(id: int, game: GameUpdate, db: db_dep):
     if not game_query:
         return {"message": "Game not found"}
 
-    for key, value in game.dict(exclude_unset=True).items():
+    for key, value in game.model_dump(exclude_unset=True).items():
         setattr(game_query, key, value)
 
     db.commit()

@@ -57,7 +57,7 @@ async def update_option(id: int, option: OptionUpdate, db: db_dep):
     if not db_option:
         raise HTTPException(status_code=404, detail="Option not found")
 
-    for key, value in option.model_dump().items():
+    for key, value in option.model_dump(exclude_unset=True).items():
         setattr(db_option, key, value)
 
     db.commit()

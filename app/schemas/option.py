@@ -6,12 +6,12 @@ from datetime import datetime
 class OptionCreate(BaseModel):
     question_id: int
     title: str
-    is_correct: bool
+    is_correct: bool | None = False
     
 
 class OptionUpdate(BaseModel):
-    title: str
-    is_correct: bool
+    title: str | None = None
+    is_correct: bool | None = None
 
 
 class OptionGetResponse(BaseModel):
