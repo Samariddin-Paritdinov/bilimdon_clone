@@ -3,9 +3,10 @@ from pydantic import BaseModel
 from typing import List
 from app.schemas.option import OptionGetForQuestionsResponse
 
+
 class QuestionCreate(BaseModel):
     title: str
-    description: str
+    description: str |None = None
     topic_id: int
 
 
@@ -24,7 +25,7 @@ class QuestionGetResponse(BaseModel):
 class QuestionGetDetailResponse(BaseModel):
     id: int
     title: str
-    description: str
+    description: str |None = None
     owner_id: int
     topic_id: int
     created_at: str
@@ -43,4 +44,4 @@ class QuestionWithOptionsResponse(BaseModel):
     updated_at: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True

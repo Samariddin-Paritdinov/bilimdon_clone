@@ -21,7 +21,7 @@ class GameUpdate(BaseModel):
 class GameGetResponse(BaseModel):
     id: int
     title: str
-    description: str
-    topic_id: int
+    description: str | None = None
+    topic_id: int | None = None
     start_time: datetime
     end_time: datetime

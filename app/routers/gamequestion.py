@@ -14,13 +14,11 @@ router = APIRouter(
 
 @router.get("/", response_model=List[GameQuestionGetResponse])
 async def get_game_questions(db: db_dep):
-    game_questions = db.query(GameQuestion).all()
-    return game_questions
+    return db.query(GameQuestion).all()
 
 @router.get("/{id}/", response_model=GameQuestionGetResponse)
 async def get_game_question(id: int, db: db_dep):
     game_question = db.query(GameQuestion).filter(GameQuestion.id == id).first()
-
     if not game_question:
         raise HTTPException(status_code=404, detail="GameQuestion not found")
 
@@ -35,7 +33,7 @@ async def create_game_question(game_question: GameQuestionCreate, db: db_dep):
     ).first()
 
     if game_question_exist:
-        raise HTTPException(status_code=400, detail="Game question already exists")
+        raise HTTPException(status_code=400, detail="GameQuestion already exists")
 
     if not db.query(Game).filter(Game.id == game_question.game_id).first():
         raise HTTPException(status_code=400, detail="Invalid Game ID")
@@ -46,6 +44,7 @@ async def create_game_question(game_question: GameQuestionCreate, db: db_dep):
     new_game_question = GameQuestion(
         **game_question.model_dump(),
     )
+
     db.add(new_game_question)
     db.commit()
     db.refresh(new_game_question)
@@ -54,18 +53,22 @@ async def create_game_question(game_question: GameQuestionCreate, db: db_dep):
 
 
 @router.put("/update/{id}/", response_model=GameQuestionGetResponse)
-async def update_game_question(id: int, game_question: GameQuestionUpdate, db: db_dep):
-    db_game_question = db.query(GameQuestion).filter(GameQuestion.id == id).first()
+async def update_game_question(
+        id: int,
+        game_question: GameQuestionUpdate,
+        db: db_dep,
+):
+    game_question_query = db.query(GameQuestion).filter(GameQuestion.id == id).first()
 
-    if not db_game_question:
+    if not game_question_query:
         raise HTTPException(status_code=404, detail="game_question not found")
 
-    db.game_question.score = game_question.score
+    game_question_query.score = game_question.score
 
     db.commit()
-    db.refresh(db_game_question)
+    db.refresh(game_question_query)
 
-    return db_game_question
+    return game_question_query
 
 
 @router.delete("/delete/{id}/")

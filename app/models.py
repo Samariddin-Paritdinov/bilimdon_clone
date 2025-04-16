@@ -112,13 +112,15 @@ class Option(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     question_id: Mapped[int] = mapped_column(Integer, ForeignKey("questions.id"))
-    title: Mapped[str] = mapped_column(String(100))
+    title: Mapped[str] = mapped_column(String(100), nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
 
     question = relationship("Question", back_populates="option_ids")
     submissions: Mapped[List["Submission"]] = relationship(back_populates="option")
+
+
 
 """
 option1 = Option()
@@ -129,6 +131,8 @@ submission1.option
 submission1.owner
 submission1.question
 """
+
+
 
 class Submission(Base):
     __tablename__ = "submissions"

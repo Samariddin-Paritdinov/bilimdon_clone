@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.post('/registration', response_model=AuthRegistrationResponse)
+@router.post('/registration/', response_model=AuthRegistrationResponse)
 async def registration(
     db: db_dep, 
     user: AuthRegistration
@@ -44,7 +44,7 @@ async def registration(
 
 
 
-@router.post('/login')
+@router.post('/login/')
 async def login(
         db: db_dep, 
         user: AuthLogin

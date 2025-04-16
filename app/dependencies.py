@@ -7,6 +7,7 @@ from app.database import SessionLocal
 from app.models import User
 
 from passlib.context import CryptContext
+from jose import jwt
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -64,18 +65,31 @@ def get_current_user(
 
     return db_user
 
+
+def get_admin_user(
+    user: User = Depends(get_current_user)
+):
+    if not user.is_staff or not user.is_superuser:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have admin privileges."
+        )
+
+    return user
+
+
+def get_staff_user(
+        user: User = Depends(get_current_user)
+):
+    if not user.is_staff:
+        raise HTTPException(
+            status_code=403,
+            detail="You dont have staff privileges"
+        )
+
+    return user
+
+
 current_user_dep = Annotated[User, Depends(get_current_user)]
-
-
-
-# def get_admin_user(
-#     user: User = Depends(get_current_user)
-# ):
-#     if user.role != "admin":
-#         raise HTTPException(
-#             status_code=403,
-#             detail="You do not have admin privileges."
-#         )
-#
-#     return user
-
+admin_user_dep = Annotated[User, Depends(get_admin_user)]
+staff_user_dep = Annotated[User, Depends(get_staff_user)]

@@ -1,11 +1,10 @@
 from fastapi import APIRouter, HTTPException
 
-from app.dependencies import db_dep, current_user_dep
+from app.dependencies import db_dep, current_user_dep, admin_user_dep
 from app.models import Participation
 from app.schemas.participation import *
 
 from datetime import datetime, timezone
-from typing import List
 
 
 router = APIRouter(
@@ -14,27 +13,25 @@ router = APIRouter(
 )
 
 
-
 @router.get("/")
 async def get_participation(db: db_dep):    
     return db.query(Participation).all()
 
 
-@router.get("/{participation_id}/", response_model=ParticipationGetDetailResponse)
-async def get_participation_by_id(participation_id: int, db: db_dep):
-    participation = db.query(Participation).filter(Participation.id == participation_id).first()
+@router.get("/{id}/", response_model=ParticipationGetDetailResponse)
+async def get_participation_by_id(id: int, db: db_dep):
+    participation = db.query(Participation).filter(Participation.id == id).first()
     if not participation:
         raise HTTPException(status_code=404, detail="Participation not found")
-
     return participation
 
 
-@router.get("/?owner_id={owner_id}/", response_model=List[ParticipationGetDetailResponse])
+@router.get("/?owner_id={owner_id}/", response_model=list[ParticipationGetDetailResponse])
 async def get_participation_by_owner_id(
         owner_id: int,
         db: db_dep,
+        admin_user: admin_user_dep,
 ):
-
     return db.query(Participation).filter(Participation.user_id == owner_id).all()
 
 
@@ -44,14 +41,10 @@ async def create_participation(
         db: db_dep,
         current_user: current_user_dep,
 ):
-
-    if db.query(Participation).filter(Participation.user_id == current_user.id, Participation.game_id == participation.game_id).first:
-        raise HTTPException(status_code= 400, detail="Participation already exist")
-
     new_participation = Participation(
         user_id=current_user.id,
-        game_id=participation.game_id,
         registered_at=datetime.now(timezone.utc),
+        **participation.model_dump()
         )
 
     if not new_participation:
@@ -64,33 +57,71 @@ async def create_participation(
     return new_participation
 
 
-
-
-@router.put("/update/{id}")
-async def update_participation_by_id(
+@router.patch("/start_participation/{id}/", response_model=ParticipationGetDetailResponse)
+async def start_participation(
         id: int,
-
         db: db_dep,
+        current_user: current_user_dep,
+):
 
+    participation = db.query(Participation).filter(Participation.id == id).first()
+
+    if not participation:
+        raise HTTPException(status_code=404, detail="Participation not found")
+
+    if participation.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="It's not your Participation")
+
+    if participation.start_time:
+        HTTPException(status_code=403, detail="Participation already started")
+
+    participation.start_time = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(participation)
+
+    return participation
+
+
+@router.patch("end_participation/{id}/")
+async def end_participation(
+        id: int,
+        db, db_dep,
+        current_user: current_user_dep,
 ):
     participation = db.query(Participation).filter(Participation.id == id).first()
 
     if not participation:
         raise HTTPException(status_code=404, detail="Participation not found")
 
+    if participation.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="It's not your Participation")
+
+    if participation.end_time:
+        HTTPException(status_code=403, detail="Participation already ended")
+
+    if not participation.start_time:
+        raise HTTPException(status_code=403, detail="Participation not started")
 
 
-### shuni ohiriga yetkazish uchun logikasini chunvolishim kerak
+    participation.end_time = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(participation)
 
-
-
+    return participation
 
 
 @router.delete("/delete/{id}/")
-async def delete_participation(id: int, db: db_dep):
+async def delete_participation(
+        id: int,
+        db: db_dep,
+        current_user: current_user_dep,
+):
     participation = db.query(Participation).filter(Participation.id == id).first()
     if not participation:
         raise HTTPException(status_code=404, detail="Participation not found")
+
+    if participation.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="It's not your Participation")
 
     db.delete(participation)
     db.commit()

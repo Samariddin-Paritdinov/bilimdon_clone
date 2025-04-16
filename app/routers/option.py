@@ -4,7 +4,6 @@ from app.models import Option, Question
 from app.dependencies import db_dep
 from app.schemas import OptionCreate, OptionUpdate, OptionGetResponse, OptionGetDetailResponse
 
-from typing import List
 
 
 router = APIRouter(
@@ -14,7 +13,7 @@ router = APIRouter(
 
 
 
-@router.get("/", response_model = List[OptionGetResponse])
+@router.get("/", response_model = list[OptionGetResponse])
 async def get_options(db:db_dep):
     return db.query(Option).all()
 
@@ -29,7 +28,11 @@ async def get_option(id: int, db: db_dep):
 
 
 @router.post("/create/", response_model = OptionGetDetailResponse)
-async def create_option(option: OptionCreate, db: db_dep):
+async def create_option(
+        option: OptionCreate,
+        db: db_dep,
+
+):
     if not db.query(Question).filter(Question.id == option.id).first():
         raise HTTPException(status_code=400, detail="Invalid Question ID")
 
@@ -44,6 +47,7 @@ async def create_option(option: OptionCreate, db: db_dep):
     new_option = Option(
         **option.model_dump(),
     )
+
     db.add(new_option)
     db.commit()
     db.refresh(new_option)
@@ -52,7 +56,12 @@ async def create_option(option: OptionCreate, db: db_dep):
 
 
 @router.put("/update/{id}/", response_model = OptionGetDetailResponse)
-async def update_option(id: int, option: OptionUpdate, db: db_dep):
+async def update_option(
+        id: int,
+        option: OptionUpdate,
+        db: db_dep,
+
+):
     db_option = db.query(Option).filter(Option.id == id).first()
     if not db_option:
         raise HTTPException(status_code=404, detail="Option not found")
@@ -67,7 +76,11 @@ async def update_option(id: int, option: OptionUpdate, db: db_dep):
 
 
 @router.delete("/delete/{id}/")
-async def delete_option(id: int, db: db_dep):
+async def delete_option(
+        id: int,
+        db: db_dep,
+
+):
     db_option = db.query(Option).filter(Option.id == id).first()
     if not db_option:
         raise HTTPException(status_code=404, detail="Option not found")

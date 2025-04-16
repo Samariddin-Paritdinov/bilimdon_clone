@@ -14,3 +14,4 @@ class AuthRegistrationResponse(BaseModel):
 class AuthLogin(BaseModel):
     email: str
     password: str
+
