@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 from datetime import datetime
 
-from app.schemas import QuestionGetResponse
+from app.schemas.question import QuestionGetResponse
 
 class OptionCreate(BaseModel):
     question_id: int
@@ -30,12 +30,4 @@ class OptionGetDetailResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-class OptionGetForQuestionsResponse(BaseModel):
-    id: int
-    title: str
-    is_correct: bool
-    ###Shuni bir so'rab ko'rish kerak
-    ###Faqatgina adminga javobni to'g'ri xatoligi ko'rinishi uchun Alohida API chiqarib qo'yimi?
 
-    class Config:
-        from_attributes = True

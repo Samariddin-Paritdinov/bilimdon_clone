@@ -26,7 +26,7 @@ async def get_participation_by_id(id: int, db: db_dep):
     return participation
 
 
-@router.get("/?owner_id={owner_id}/", response_model=list[ParticipationGetDetailResponse])
+@router.get("/owner_id/{owner_id}/", response_model=list[ParticipationGetDetailResponse])
 async def get_participation_by_owner_id(
         owner_id: int,
         db: db_dep,
@@ -82,7 +82,7 @@ async def start_participation(
     return participation
 
 
-@router.patch("end_participation/{id}/")
+@router.patch("/end_participation/{id}/")
 async def end_participation(
         id: int,
         db, db_dep,

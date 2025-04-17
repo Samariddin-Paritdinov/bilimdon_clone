@@ -28,7 +28,7 @@ async def get_question_by_id(id: int, db: db_dep):
     return question
 
     
-@router.post("/create", response_model = QuestionGetDetailResponse)
+@router.post("/create/", response_model = QuestionGetDetailResponse)
 async def create_question(
         question: QuestionCreate,
         db: db_dep,
@@ -54,7 +54,7 @@ async def create_question(
     return new_question
 
 
-@router.put("/update/{id}", response_model = QuestionGetDetailResponse)
+@router.put("/update/{id}/", response_model = QuestionGetDetailResponse)
 async def update_question(
     id: int,
     question: QuestionUpdate,
@@ -77,7 +77,7 @@ async def update_question(
     return existing_question
 
 
-@router.delete("/delete/{id}")
+@router.delete("/delete/{id}/")
 async def delete_question(
         id: int,
         db: db_dep,

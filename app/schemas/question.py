@@ -1,7 +1,9 @@
 from pydantic import BaseModel
 
 from typing import List
-from app.schemas.option import OptionGetForQuestionsResponse
+
+
+
 
 
 class QuestionCreate(BaseModel):
@@ -30,6 +32,18 @@ class QuestionGetDetailResponse(BaseModel):
     topic_id: int
     created_at: str
     updated_at: str
+
+
+class OptionGetForQuestionsResponse(BaseModel):
+    id: int
+    title: str
+    is_correct: bool
+    ###Shuni bir so'rab ko'rish kerak
+    ###Faqatgina adminga javobni to'g'ri xatoligi ko'rinishi uchun Alohida API chiqarib qo'yimi?
+
+    class Config:
+        from_attributes = True
+
 
 class QuestionWithOptionsResponse(BaseModel):
     id: int
