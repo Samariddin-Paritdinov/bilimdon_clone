@@ -25,3 +25,8 @@ class GameGetResponse(BaseModel):
     topic_id: int | None = None
     start_time: datetime
     end_time: datetime
+
+
+class GameSelectQuestion(BaseModel):
+    question_id: int
+    game_id: int

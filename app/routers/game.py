@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException
 
 from app.dependencies import db_dep, current_user_dep, admin_user_dep
-from app.models import Game, Topic
-from app.schemas.game import *
+from app.models import Game, Topic, Question, GameQuestion
+from app.schemas import GameCreate, GameUpdate,  GameGetResponse, QuestionGetResponse, GameSelectQuestion
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 
 router = APIRouter(
@@ -58,6 +58,12 @@ async def create_game(
             detail="Start time must be greater than current time",
         )
 
+    if game.end_time - game.start_time < timedelta(hours=1):
+        raise HTTPException(
+            status_code=400,
+            detail="Game must last at least 1 hour."
+        )
+
     new_game = Game(
         owner_id=current_user.id,
         **game.model_dump()
@@ -102,5 +108,59 @@ async def delete_game_by_id(
     }
 
 
+@router.get("/{id}/questions", response_model=list[QuestionGetResponse])
+async def game_questions(
+        db: db_dep,
+        current_user: current_user_dep,
+        id: int
+):
+    db_game = db.query(Game).filter(Game.id == id).first()
+
+    if not db_game:
+        raise HTTPException(
+            status_code=404,
+            detail="Game not found."
+        )
+
+    db_questions = db.query(GameQuestion).filter(GameQuestion.game_id == id).all()
+
+    if db_questions:
+        return [db.query(Question).filter(Question.id == question.question_id).first() for question in db_questions]
+
+    return []
+
+
+@router.post("/{id}/select-question/", response_model=QuestionGetResponse)
+async def select_question(
+        db: db_dep,
+        current_user: current_user_dep,
+        request: GameSelectQuestion
+):
+    db_question = db.query(Question).filter(Question.id == request.question_id).first()
+
+    if not db_question:
+        raise HTTPException(
+            status_code=404,
+            detail="Question not found."
+        )
+
+    db_game = db.query(Game).filter(Game.id == request.game_id).first()
+
+    if not db_game:
+        raise HTTPException(
+            status_code=404,
+            detail="Game not found."
+        )
+
+    db_game_question = GameQuestion(
+        game_id=db_game.id,
+        question_id=db_question.id
+    )
+
+    db.add(db_game_question)
+    db.commit()
+    db.refresh(db_game_question)
+
+    return db_question
 
 

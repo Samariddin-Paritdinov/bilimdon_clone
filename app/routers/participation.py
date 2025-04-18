@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.dependencies import db_dep, current_user_dep, admin_user_dep
 from app.models import Participation
-from app.schemas.participation import *
+from app.schemas import ParticipationResponse, ParticipationCreate
 
 from datetime import datetime, timezone
 
@@ -18,7 +18,7 @@ async def get_participation(db: db_dep):
     return db.query(Participation).all()
 
 
-@router.get("/{id}/", response_model=ParticipationGetDetailResponse)
+@router.get("/{id}/", response_model=ParticipationResponse)
 async def get_participation_by_id(id: int, db: db_dep):
     participation = db.query(Participation).filter(Participation.id == id).first()
     if not participation:
@@ -26,7 +26,7 @@ async def get_participation_by_id(id: int, db: db_dep):
     return participation
 
 
-@router.get("/owner_id/{owner_id}/", response_model=list[ParticipationGetDetailResponse])
+@router.get("/owner_id/{owner_id}/", response_model=list[ParticipationResponse])
 async def get_participation_by_owner_id(
         owner_id: int,
         db: db_dep,
@@ -57,7 +57,7 @@ async def create_participation(
     return new_participation
 
 
-@router.patch("/start_participation/{id}/", response_model=ParticipationGetDetailResponse)
+@router.patch("/start_participation/{id}/", response_model=ParticipationResponse)
 async def start_participation(
         id: int,
         db: db_dep,

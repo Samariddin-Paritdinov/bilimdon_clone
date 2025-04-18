@@ -52,7 +52,7 @@ class Game(Base):
     questions: Mapped[List["GameQuestion"]] = relationship(back_populates="game")
     topic: Mapped["Topic"] = relationship("Topic", back_populates="games")
     participations: Mapped[List["Participation"]] = relationship(back_populates="game")
-
+    submission: Mapped["Submission"] = relationship("Submission", back_populates="game")
 
 class GameQuestion(Base):
     __tablename__ = "game_questions"
@@ -147,3 +147,4 @@ class Submission(Base):
     owner = relationship("User", back_populates="submissions")
     question = relationship("Question", back_populates="submissions")
     option = relationship("Option", back_populates="submissions")
+    game = relationship("Game", back_populates="submissions")
