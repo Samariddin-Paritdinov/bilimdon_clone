@@ -1,10 +1,15 @@
 from pydantic import BaseModel
 
+from datetime import datetime
+
 class SubmissionsGetResponse(BaseModel):
     id: int
     participation_id: int
+    user_id: int
     question_id: int
     option_id: int
+    is_correct: bool
+    created_at: datetime
 
 
 class SubmissionsGetForQuestionResponse(BaseModel):
