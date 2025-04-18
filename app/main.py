@@ -9,14 +9,13 @@ from app.routers.participation import router as participation_router
 from app.routers.topic import router as topic_router
 
 
-
 app = FastAPI()
-
 
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
 
 app.include_router(auth_router)
 app.include_router(question_router)
