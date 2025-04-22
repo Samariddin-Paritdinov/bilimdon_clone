@@ -8,8 +8,8 @@ from app.schemas.submission import *
 
 
 router = APIRouter(
-    prefix="submissions",
-    tags=["submissions"],
+    prefix="/submissions",
+    tags=["/submissions"],
 )
 
 @router.get("/", response_model=SubmissionsGetResponse)

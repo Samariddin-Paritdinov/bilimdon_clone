@@ -1,3 +1,4 @@
+from fastapi import Request
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String, DateTime, Date, Integer, Boolean, ForeignKey
 
@@ -25,3 +26,9 @@ class User(Base):
     owned_games: Mapped[List["Game"]] = relationship(back_populates="owner")
     submissions: Mapped[List["Submission"]] = relationship(back_populates="owner")
     participations: Mapped[List["Participation"]] = relationship(back_populates="user")
+
+    async def __admin_repr__(self, request: Request):
+        return f"{self.last_name} {self.first_name}"
+
+    async def __admin_select2_repr__(self, request: Request) -> str:
+        return f'<span><b>{self.first_name} {self.last_name}</b></span>'

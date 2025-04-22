@@ -1,3 +1,4 @@
+from fastapi import Request
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String, DateTime, Date, Integer, Boolean, ForeignKey
 
@@ -23,3 +24,6 @@ class Submission(Base):
     question = relationship("Question", back_populates="submissions")
     option = relationship("Option", back_populates="submissions")
     game = relationship("Game", back_populates="submissions")
+
+    async def __admin_repr__(self, request: Request ):
+        return f"Submission of user with id={self.id}"
